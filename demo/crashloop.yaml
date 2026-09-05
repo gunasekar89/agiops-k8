@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: holmes-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: holmes-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: web-app}
+  template:
+    metadata:
+      labels: {app: web-app}
+    spec:
+      containers:
+        - name: web-app
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo 'Starting application...'
+              echo 'Loading configuration...'
+              echo 'ERROR: Could not connect to database at db:5432'
+              echo 'java.net.ConnectException: Connection refused'
+              echo 'Application startup failed'
+              exit 1
+

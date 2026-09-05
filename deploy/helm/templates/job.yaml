@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      restartPolicy: Never
+      containers:
+        - name: console
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - investigate
+            - --namespace
+            - {{ .Values.target.namespace | quote }}
+            {{- if .Values.target.pod }}
+            - --pod
+            - {{ .Values.target.pod | quote }}
+            {{- end }}
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.providerSecret.name }}
+                  key: {{ .Values.providerSecret.key }}
+

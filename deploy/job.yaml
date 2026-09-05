@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: holmes-console
+  namespace: holmes-system
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: holmes-console
+      restartPolicy: Never
+      containers:
+        - name: console
+          image: ghcr.io/gunasekar89/agiops-k8:latest
+          args: ["investigate", "--namespace", "holmes-demo"]
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: holmes-provider-credentials
+                  key: OPENAI_API_KEY
+          stdin: true
+          tty: true
+

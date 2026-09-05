@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: memory-hog
+  namespace: holmes-demo
+  labels: {app: memory-hog}
+spec:
+  containers:
+    - name: memory-hog
+      image: python:3.12-alpine
+      command: ["python", "-c", "x=[]\nwhile True: x.append('x'*1048576)"]
+      resources:
+        requests: {memory: 16Mi}
+        limits: {memory: 32Mi}
+

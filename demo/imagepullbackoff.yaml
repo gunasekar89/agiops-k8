@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: broken-image
+  namespace: holmes-demo
+  labels: {app: broken-image}
+spec:
+  containers:
+    - name: app
+      image: example.invalid/aegis/does-not-exist:never
+
