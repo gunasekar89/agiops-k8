@@ -22,6 +22,12 @@ SIGNALS: dict[str, set[str]] = {
     },
     "dns": {"name or service not known", "no such host", "dns", "nxdomain"},
     "permission": {"forbidden", "permission denied", "unauthorized", "rbac"},
+    "stale_runtime": {
+        "containerstatusunknown",
+        "node lost",
+        "nodelost",
+        "pod unknown",
+    },
 }
 
 

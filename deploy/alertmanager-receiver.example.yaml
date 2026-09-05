@@ -1,0 +1,15 @@
+# Merge this receiver and route into your Alertmanager configuration.
+receivers:
+  - name: aegis-holmes-healer
+    webhook_configs:
+      - url: http://alert-healer.holmes-system.svc:8080/api/v1/alerts
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /etc/alertmanager/secrets/holmes-healer-token/token
+        send_resolved: false
+routes:
+  - receiver: aegis-holmes-healer
+    matchers:
+      - auto_heal = "true"
+

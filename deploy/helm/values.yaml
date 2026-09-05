@@ -10,4 +10,8 @@ providerSecret:
   key: OPENAI_API_KEY
 serviceAccount:
   name: holmes-console
-
+healer:
+  enabled: false
+  mode: observe
+  maxRiskScore: 25
+  webhookTokenSecretKey: WEBHOOK_TOKEN

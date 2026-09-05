@@ -5,7 +5,13 @@ import shutil
 import subprocess
 from typing import Any
 
-from .models import NOT_AVAILABLE, ContainerEvidence, EventEvidence, KubernetesEvidence
+from .models import (
+    NOT_AVAILABLE,
+    ContainerEvidence,
+    EventEvidence,
+    KubernetesEvidence,
+    WorkloadContext,
+)
 from .redaction import RedactionEngine
 
 
@@ -108,6 +114,46 @@ class KubernetesCollector:
         evidence.logs = self._bounded("\n\n".join(logs))
         evidence.previous_logs = self._bounded("\n\n".join(previous))
         return evidence
+
+    def workload_context(self, namespace: str, evidence: KubernetesEvidence) -> WorkloadContext:
+        """Resolve a pod owner to a controller whose redundancy can be verified."""
+        if "/" not in evidence.owner:
+            return WorkloadContext()
+        kind, name = evidence.owner.split("/", 1)
+        if kind == "ReplicaSet":
+            raw = self._run(
+                ["get", "replicaset", name, "-n", namespace, "-o", "json"],
+                allow_failure=True,
+            )
+            if not raw:
+                return WorkloadContext()
+            replica_set = self._json(raw, "replicaset")
+            owners = replica_set.get("metadata", {}).get("ownerReferences") or []
+            deployment = next(
+                (item.get("name") for item in owners if item.get("kind") == "Deployment"), None
+            )
+            if not deployment:
+                return WorkloadContext()
+            kind, name = "Deployment", deployment
+        if kind != "Deployment":
+            return WorkloadContext(kind=kind, name=name)
+        raw = self._run(
+            ["get", "deployment", name, "-n", namespace, "-o", "json"],
+            allow_failure=True,
+        )
+        if not raw:
+            return WorkloadContext(kind=kind, name=name)
+        workload = self._json(raw, "deployment")
+        labels = workload.get("spec", {}).get("selector", {}).get("matchLabels", {})
+        selector = ",".join(f"{key}={value}" for key, value in sorted(labels.items()))
+        return WorkloadContext(
+            kind=kind,
+            name=name,
+            desired_replicas=workload.get("spec", {}).get("replicas"),
+            ready_replicas=workload.get("status", {}).get("readyReplicas", 0),
+            available_replicas=workload.get("status", {}).get("availableReplicas", 0),
+            selector=selector or NOT_AVAILABLE,
+        )
 
     def _collect_events(self, namespace: str, pod: str) -> list[EventEvidence]:
         raw = self._run(

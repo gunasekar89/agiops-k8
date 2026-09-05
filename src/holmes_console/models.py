@@ -13,6 +13,19 @@ class ValidationStatus(str, Enum):
     UNVERIFIED = "UNVERIFIED"
 
 
+class HealingMode(str, Enum):
+    OBSERVE = "observe"
+    AUTOMATIC = "automatic"
+
+
+class RemediationStatus(str, Enum):
+    PROPOSED = "PROPOSED"
+    BLOCKED = "BLOCKED"
+    EXECUTED = "EXECUTED"
+    RECOVERED = "RECOVERED"
+    ESCALATED = "ESCALATED"
+
+
 @dataclass
 class ContainerEvidence:
     name: str = NOT_AVAILABLE
@@ -54,6 +67,16 @@ class KubernetesEvidence:
 
 
 @dataclass
+class WorkloadContext:
+    kind: str = NOT_AVAILABLE
+    name: str = NOT_AVAILABLE
+    desired_replicas: Optional[int] = None
+    ready_replicas: Optional[int] = None
+    available_replicas: Optional[int] = None
+    selector: str = NOT_AVAILABLE
+
+
+@dataclass
 class HolmesAnalysis:
     root_cause: str = NOT_AVAILABLE
     evidence: str = NOT_AVAILABLE
@@ -76,3 +99,33 @@ class InvestigationResult:
     analysis: HolmesAnalysis
     validation: ValidationResult
     elapsed_seconds: float
+
+
+@dataclass
+class RiskAssessment:
+    score: int
+    threshold: int
+    factors: list[str] = field(default_factory=list)
+
+    @property
+    def safe(self) -> bool:
+        return self.score <= self.threshold
+
+
+@dataclass
+class RemediationPlan:
+    action: str
+    target: str
+    reason: str
+    risk: RiskAssessment
+    allowed: bool = False
+
+
+@dataclass
+class HealingReport:
+    investigation: InvestigationResult
+    workload: WorkloadContext
+    plan: RemediationPlan
+    status: RemediationStatus
+    message: str
+    rollback: str = NOT_AVAILABLE
