@@ -1,5 +1,7 @@
 # Aegis Holmes — Kubernetes Investigation Console
 
+*Agentic Generative Intelligence for Runtime*
+
 Aegis Holmes is a production-oriented, read-only terminal console for real Kubernetes incident investigation. **HolmesGPT performs the AI investigation. This repository provides Kubernetes evidence collection, deterministic validation, secret redaction, orchestration, and a custom terminal presentation layer.** The dashboard is not an official HolmesGPT native UI.
 
 The application calls the supported `holmes ask "..."` CLI as an external process. It does not use private HolmesGPT Python internals and never fabricates unavailable evidence or analysis.
